@@ -1,14 +1,11 @@
 import PropTypes from 'prop-types';
 import css from './ImageGalleryItem.module.css';
-import { nanoid } from 'nanoid';
 
-const id = nanoid();
 const ImageGalleryItem = ({src, alt, largeImageURL, openModal}) => {
 return (
 <li
 className={css.ImageGalleryItem}
 onClick={() => openModal(largeImageURL)}
-key={id}
 >
     <img
     src={src}

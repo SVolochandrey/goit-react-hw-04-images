@@ -71,11 +71,13 @@ const App = () => {
 
   const closeModal = () => {
     setShowModal(false);
+    setLargeImageURL('');
   };
 
+  const memoizedImages = useMemo(() => images, [images]);
   const memoizedImageGallery = useMemo(
-    () => <ImageGallery images={images} openModal={openModal} />,
-    [images]
+    () => <ImageGallery images={memoizedImages} openModal={openModal} />,
+    [memoizedImages]
   );
 
   return (
@@ -84,7 +86,7 @@ const App = () => {
       {isLoading ? <Loader /> : memoizedImageGallery}
       {error && <p>❌something went wrong❌</p>}
 
-      {loadMore && <Button onLoadMore={onLoadMore} page={page} />}
+      {loadMore && <Button onLoadMore={onLoadMore} />}
 
       {showModal && (
         <Modal largeImageURL={largeImageURL} onClose={closeModal} />
@@ -94,3 +96,4 @@ const App = () => {
 };
 
 export default App;
+
