@@ -36,9 +36,11 @@ return alert('Sorry, nothing found 🤷‍♂️');
 }
 setImages(prevImages => [...prevImages, ...hits]);
 setLoadMore(page < Math.ceil(totalHits / per_page));
-} catch (error) {
+}
+catch (error) {
 setError({ error });
-} finally {
+}
+finally {
 setIsLoading(false);
 }
 };
