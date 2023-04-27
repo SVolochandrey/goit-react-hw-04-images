@@ -74,23 +74,19 @@ const App = () => {
     setLargeImageURL('');
   };
 
-  const memoizedImages = useMemo(() => images, [images]);
   const memoizedImageGallery = useMemo(
-    () => <ImageGallery images={memoizedImages} openModal={openModal} />,
-    [memoizedImages]
+    () => <ImageGallery images={images} openModal={openModal} />,
+    [images]
   );
 
   return (
     <>
       <Searchbar onSubmit={formSubmit} />
-      {isLoading ? <Loader /> : memoizedImageGallery}
+      {isLoading && <Loader />}
+      {memoizedImageGallery}
       {error && <p>❌something went wrong❌</p>}
-
       {loadMore && <Button onLoadMore={onLoadMore} />}
-
-      {showModal && (
-        <Modal largeImageURL={largeImageURL} onClose={closeModal} />
-      )}
+      {showModal && <Modal largeImageURL={largeImageURL} onClose={closeModal} />}
     </>
   );
 };
