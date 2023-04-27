@@ -3,75 +3,60 @@ import ImageGallery from './ImageGallery/ImageGallery';
 import Modal from './Modal/Modal';
 import Searchbar from './Searchbar/Searchbar';
 import fetchImages from './Services/API';
+import Loader from './Loader/Loader';
 
-import React, { Component } from 'react';
+import React, { useState, useEffect } from 'react';
 import { animateScroll } from 'react-scroll';
 
-export class App extends Component {
-state = {
-searchQuery: '',
-images: [],
-page: 1,
-per_page: 12,
-isLoading: false,
-loadMore: false,
-error: null,
-showModal: false,
-largeImageURL: '',
-id: null,
-};
+const App = () => {
+const [searchQuery, setSearchQuery] = useState('');
+const [images, setImages] = useState([]);
+const [page, setPage] = useState(1);
+const [isLoading, setIsLoading] = useState(false);
+const [loadMore, setLoadMore] = useState(false);
+const [error, setError] = useState(null);
+const [showModal, setShowModal] = useState(false);
+const [largeImageURL, setLargeImageURL] = useState('');
+const per_page = 12;
 
-componentDidUpdate(_, prevState) {
-const {searchQuery, page} = this.state;
+useEffect(() => {
+getImages(searchQuery, page);
+}, [searchQuery, page]);
 
-if (prevState.searchQuery !== searchQuery || prevState.page !== page) {
-this.getImages(searchQuery, page);
-}
-}
-
-getImages = async (query, page) => {
-this.setState({isLoading: true});
-if(!query) {
+const getImages = async (searchQuery, page) => {
+if (!searchQuery) {
 return;
 }
+setIsLoading(true);
 
 try {
-const {hits, totalHits} = await fetchImages (query, page);
-this.setState(prevState => ({
-images: [...prevState.images, ...hits],
-loadMore: prevState.page < Math.ceil(totalHits/prevState.per_page),
-error: null,
-}));
+const { hits, totalHits } = await fetchImages(searchQuery, page);
+if (hits.length === 0) {
+return alert('Sorry, nothing found 🤷‍♂️');
 }
-
-catch (error) {
-this.setState({error: error.massage});
-}
-
-finally {
-this.setState({isLoading: false});
+setImages(prevImages => [...prevImages, ...hits]);
+setLoadMore(page < Math.ceil(totalHits / per_page));
+} catch (error) {
+setError({ error });
+} finally {
+setIsLoading(false);
 }
 };
 
-
-formSubmit = searchQuery => {
-this.setState({
-searchQuery,
-images: [],
-page: 1,
-loadMore: false,
-});
+const formSubmit = searchQuery => {
+setSearchQuery(searchQuery);
+setImages([]);
+setPage(1);
+setLoadMore(false);
 };
 
-onLoadMore = () => {
-const {loadMore} = this.state;
-if (loadMore) {
-this.setState(prevState => ({page: prevState.page + 1}));
-this.scrollOnMoreButton();
-}
+const onLoadMore = () => {
+setIsLoading(true);
+setPage(prevPage => prevPage + 1);
+scrollOnMoreButton();
 };
 
-scrollOnMoreButton = () => {
+const scrollOnMoreButton = () => {
 animateScroll.scrollToBottom({
 duration: 1000,
 delay: 10,
@@ -79,41 +64,32 @@ smooth: 'linear',
 });
 };
 
-openModal = largeImageURL => {
-this.setState({
-showModal: true,
-largeImageURL: largeImageURL,
-});
+const openModal = largeImageURL => {
+setShowModal(true);
+setLargeImageURL(largeImageURL);
 };
 
-closeModal = () => {
-this.setState({
-showModal: false,
-largeImageURL: '',
-});
+const closeModal = () => {
+setShowModal(false);
 };
 
-render() {
-const {images, loadMore, showModal, largeImageURL} = this.state;
 return (
-<>
-<Searchbar onSubmit={this.formSubmit}/>
+    <>
+      <Searchbar onSubmit={formSubmit} />
+      {isLoading ? (
+        <Loader />
+      ) : (
+        <ImageGallery images={images} openModal={openModal} />
+      )}
+      {error && <p>❌something went wrong❌</p>}
 
-{images.length > 0 && <ImageGallery images={images} openModal={this.openModal}/>}
+      {loadMore && <Button onLoadMore={onLoadMore} page={page} />}
 
-{loadMore && (
-<Button onLoadMore={this.onLoadMore} />
-)}
-
-{!loadMore && images.length > 0 && (
-<p>No more images to load.</p>
-)}
-
-{showModal && (
-<Modal largeImageURL={largeImageURL} onClose={this.closeModal} />
-)}
-</>
-);
+      {showModal && (
+        <Modal largeImageURL={largeImageURL} onClose={closeModal} />
+      )}
+    </>
+  );
 }
 
-}
+export default App;
